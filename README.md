@@ -28,5 +28,5 @@ ytrss link [name]
 Example:
 
 ```
-ytrss https://www.youtube.com/@channel \"Cool Channel\"
+ytrss https://www.youtube.com/@channel "Cool Channel"
 ```
