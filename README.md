@@ -4,6 +4,12 @@ add youtube channels to newsboat rss feed
 ## requements
 [sharp](https://github.com/pystardust/shup)
 
+## installation
+
+```
+make install
+```
+
 ## configuration
 
 set newsboat's urls file 
