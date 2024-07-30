@@ -2,7 +2,7 @@
 add youtube channels to newsboat rss feed
 
 ## requements
-[sharp](ihttps://github.com/pystardust/shup)
+[sharp](https://github.com/pystardust/shup)
 
 ## configuration
 
