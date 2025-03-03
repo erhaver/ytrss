@@ -1,11 +1,18 @@
-PREFIX ?= /usr
-BINDIR ?= $(PREFIX)/bin
+# Makefile для установки и удаления скрипта ytrss
 
-all:
-	@echo RUN \'make install\' to install ytrss
+INSTALL_DIR = /usr/local/bin
+SCRIPT_NAME = ytrss
+SCRIPT_PATH = $(INSTALL_DIR)/$(SCRIPT_NAME)
+
+.PHONY: install uninstall
 
 install:
-	@install -Dm 755 ytrss $(DESTDIR)$(BINDIR)/ytrss
+	@echo "Установка скрипта $(SCRIPT_NAME) в $(INSTALL_DIR)..."
+	@sudo cp $(SCRIPT_NAME) $(SCRIPT_PATH)
+	@sudo chmod +x $(SCRIPT_PATH)
+	@echo "Скрипт установлен."
 
 uninstall:
-	@rm -f $(DESTDIR)$(BINDIR)/ytrss
+	@echo "Удаление скрипта $(SCRIPT_NAME) из $(INSTALL_DIR)..."
+	@sudo rm -f $(SCRIPT_PATH)
+	@echo "Скрипт удален."

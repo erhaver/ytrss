@@ -1,50 +1,73 @@
 #!/bin/bash
+set -euo pipefail
+
 nbconfig="$HOME/.config/newsboat/urls"
 
-if ! command -v -- shup > /dev/null 2>&1; then
-  printf >&2 '%s\n' "\
+die() {
+    echo -e >&2 "Ошибка: $1"
+    exit 1
+}
 
-    shup is required
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+}
 
-    https://github.com/pystardust/shup
-    "
-  exit 1
-fi
+check_dependencies() {
+    local dependencies=(
+        "shup:https://github.com/pystardust/shup"
+        "curl:https://curl.se/download.html"
+    )
+    local missing=()
 
-if [ -z "$1" ]
-  then
-    printf %s "\
+    for dep in "${dependencies[@]}"; do
+        local cmd=${dep%%:*}
+        local url=${dep#*:}
+        if ! command -v "$cmd" &> /dev/null; then
+            missing+=("$cmd ($url)")
+        fi
+    done
 
-      No link provided
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        die "Отсутствуют зависимости:\n$(printf '%s\n' "${missing[@]}")"
+    fi
+}
 
-      RUN:
-      ytrss link [name]
+extract_rss() {
+    local link=$1
+    curl -s "$link" | shup "link[RSS]" | grep -Po '(?<=href=").+?(?=")'
+}
 
-      Example:
-      ytrss https://www.youtube.com/@channel \"Cool Channel\"
-      "
-      exit 0
-fi
+add_rss_to_config() {
+    local rss=$1
+    local name=$2
+    if grep -Fq "$rss" "$nbconfig"; then
+        log "$rss уже есть в $nbconfig"
+    else
+        if [[ -z "$name" ]]; then
+            rssstring="$rss Youtube"
+            rssname="RSS"
+        else
+            rssstring="$rss Youtube \"~$name\""
+            rssname="RSS \"$name\""
+        fi
+        echo "$rssstring" >> "$nbconfig"
+        log "$rssname добавлен в $nbconfig"
+    fi
+}
 
-link=$1
-name=$2
-rss=$(curl -s "$1" | shup "link[RSS]" | grep -Po '(?<=href=").+?(?=")')
+main() {
+    check_dependencies
 
-[ -z "$link" ] && die "No link provided"
+    # Проверка наличия аргументов
+    if [[ $# -eq 0 ]]; then
+        die "Не указана ссылка\nИспользование: ytrss <ссылка> [имя]"
+    fi
 
-if grep -Fq "$rss" $nbconfig
-then
-    echo "$rss already in $nbconfig"
-else
-  if [ -z "$name" ]
-  then
-    rssstring="$rss Youtube"
-    rssname="RSS"
-  else
-    rssstring="$rss Youtube \"~$name\""
-    rssname="RSS \"$name\""
-  fi  
-    echo "$rssstring" >> $nbconfig
-    echo "$rssname added to $nbconfig"
-fi
+    local link=$1
+    local name=${2:-}  # Если второй аргумент не передан, используем пустую строку
 
+    local rss=$(extract_rss "$link")
+    add_rss_to_config "$rss" "$name"
+}
+
+main "$@"
