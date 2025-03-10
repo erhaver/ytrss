@@ -2,6 +2,9 @@
 set -euo pipefail
 
 nbconfig="$HOME/.config/newsboat/urls"
+# Параметры прокси
+proxy_host="localhost"  # Замените на адрес вашего прокси
+proxy_port="1080"       # Замените на порт вашего прокси
 
 die() {
     echo -e >&2 "Ошибка: $1"
@@ -34,7 +37,7 @@ check_dependencies() {
 
 extract_rss() {
     local link=$1
-    curl -s "$link" | shup "link[RSS]" | grep -Po '(?<=href=").+?(?=")'
+    curl -s --socks5 "$proxy_host:$proxy_port" "$link" | shup "link[RSS]" | grep -Po '(?<=href=").+?(?=")'
 }
 
 add_rss_to_config() {
@@ -44,10 +47,10 @@ add_rss_to_config() {
         log "$rss уже есть в $nbconfig"
     else
         if [[ -z "$name" ]]; then
-            rssstring="$rss Youtube"
+            rssstring="$rss \"001: youtube\""
             rssname="RSS"
         else
-            rssstring="$rss Youtube \"~$name\""
+            rssstring="$rss \"001: youtube\" \"~$name\""
             rssname="RSS \"$name\""
         fi
         echo "$rssstring" >> "$nbconfig"
